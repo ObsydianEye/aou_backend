@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express';
 const router = Router();
 
 router.get('/', (req: Request, res: Response) => {
-    res.send('Hello from Express route (modularized)!');
+    res.json({ msg: 'Hello from Express route (modularized)! and env varibalew', envVar: process.env.TESTVAR });
 });
 
 export default router;
