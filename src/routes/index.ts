@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
+import authRoute from "./auth.routes"
 
 const router = Router();
 
-router.get('/', (req: Request, res: Response) => {
-    res.json({ msg: 'Hello from Express route (modularized)! and env varibalew', envVar: process.env.TESTVAR });
-});
+router.use("/auth", authRoute);
 
 export default router;

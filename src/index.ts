@@ -3,7 +3,10 @@ import cors from "cors"
 import morgan from "morgan"
 import 'dotenv/config';
 
-import routes from "./routes/index"
+import envConfig from "./utils/envConfgi";
+import { connectDB } from "./models/database";
+import { errorHandler } from "./middlewares/errorhandler";
+import routes from "./routes"
 
 const app = express()
 
@@ -12,14 +15,20 @@ app.use(morgan("dev"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use("/", routes)
+app.get("/", (req: Request, res: Response) => { res.send("this is working") })
+app.use("/api", routes)
+
+app.use(errorHandler)
+
 const startServer = async () => {
     try {
-        app.listen(process.env.PORT, () => {
-            console.log("Server is running on port 5000")
-        })
-    } catch (error) {
-        console.log("Failed to start the server", error)
+        await connectDB();
+        app.listen(envConfig.PORT, () => {
+            console.log(`🚀 Server running on port ${envConfig.PORT}`);
+        });
+    } catch (err) {
+        console.error('❌ Failed to start server:', err);
+        process.exit(1);
     }
-}
+};
 startServer()
