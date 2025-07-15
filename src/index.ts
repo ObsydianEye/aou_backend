@@ -1,4 +1,4 @@
-import express from "express"
+import express, { Request, Response } from "express"
 import cors from "cors"
 import morgan from "morgan"
 // import 'dotenv/config';
@@ -10,7 +10,9 @@ app.use(morgan("dev"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-
+app.get('/', (req: Request, res: Response) => {
+    res.send('Hello from Express with TypeScript!');
+});
 const startServer = async () => {
     try {
         app.listen(5000, () => {
