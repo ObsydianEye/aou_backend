@@ -1,7 +1,9 @@
 const express = require("express");
 
 const app = express();
-
+app.get("/api", (req, res) => {
+  res.send("Hello Vercel");
+});
 const startServer = () => {
   try {
     app.listen(5000, () => {
