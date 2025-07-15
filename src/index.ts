@@ -3,6 +3,8 @@ import cors from "cors"
 import morgan from "morgan"
 // import 'dotenv/config';
 
+import routes from "./routes/index"
+
 const app = express()
 
 app.use(cors())
@@ -10,9 +12,7 @@ app.use(morgan("dev"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello from Express with TypeScript!');
-});
+app.use("/", routes)
 const startServer = async () => {
     try {
         app.listen(5000, () => {
