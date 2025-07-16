@@ -1,7 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
-export type UserRole = 'super_admin' | 'admin' | 'editor'
+// Define user roles
+export type UserRole = 'super_admin' | 'admin' | 'editor';
+
+// Define the Mongoose document interface
 export interface IUser extends Document {
     username: string;
     email: string;
@@ -16,6 +19,12 @@ export interface IUser extends Document {
     comparePassword(candidate: string): Promise<boolean>;
 }
 
+// Define the plain User type (without Mongoose methods)
+export type User = Omit<IUser, 'comparePassword' | 'save' | 'validate' | '$isDeleted' | '$locals' | '$op'> & {
+    _id: string; // Force _id to be string for `req.user`
+};
+
+// Mongoose schema
 const UserSchema = new Schema<IUser>({
     username: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true },
@@ -29,9 +38,10 @@ const UserSchema = new Schema<IUser>({
     createdBy: { type: String, default: "Super Admin" },
 });
 
-// Add method to compare hashed passwords
+// Password comparison method
 UserSchema.methods.comparePassword = function (candidate: string) {
     return bcrypt.compare(candidate, this.password);
 };
 
+// Mongoose model
 export const UserModel = mongoose.model<IUser>('User', UserSchema);

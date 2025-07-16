@@ -3,10 +3,11 @@ import cors from "cors"
 import morgan from "morgan"
 import 'dotenv/config';
 
-import envConfig from "./utils/envConfgi";
+import envConfig from "./utils/envConfig";
 import { connectDB } from "./models/database";
 import { errorHandler } from "./middlewares/errorhandler";
 import routes from "./routes"
+import { loadUsersFromDB } from "./models/user.store";
 
 const app = express()
 
@@ -23,6 +24,7 @@ app.use(errorHandler)
 const startServer = async () => {
     try {
         await connectDB();
+        await loadUsersFromDB();
         app.listen(envConfig.PORT, () => {
             console.log(`🚀 Server running on port ${envConfig.PORT}`);
         });

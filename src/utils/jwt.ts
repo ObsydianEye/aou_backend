@@ -1,5 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
-import envConfig from './envConfgi';
+import envConfig from './envConfig';
 const JWT_SECRET = envConfig.JWT_SECRET || "aree";
 const JWT_EXPIRES_IN = envConfig.JWT_EXPIRES_IN || "1h";
 
