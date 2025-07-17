@@ -18,6 +18,10 @@ interface SimpleUser {
     isActive: boolean;
     lastLogin: string;
 }
-
+declare module 'express-serve-static-core' {
+    interface Request {
+        user?: any;
+    }
+}
 
 export { User, SimpleUser };
