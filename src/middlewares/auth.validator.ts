@@ -30,7 +30,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         if (!user) {
             return res.status(401).json({ detail: 'User not found' });
         }
-        
+
         req.user = { ...user.toObject(), _id: user.id.toString() }; // Attach to request
         next();
     } catch (err) {
@@ -39,7 +39,9 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 };
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-    const role = (req.user as any)?._doc?.role;
+    console.log(req.body)
+    console.log(req.user)
+    const role = req.user.role;
     if (!['admin', 'super_admin'].includes(role)) {
         return res.status(403).json({ detail: 'Not enough permissions' });
     }
