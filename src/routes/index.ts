@@ -16,6 +16,6 @@ router.use('/users', authenticateToken, requireAdmin, userRoute)
 router.use('/activities', authenticateToken, requireAdmin, activityRoutes)
 router.use('/artists', authenticateToken, requireAdmin, artistRoutes)
 router.use('/dashboard', dashboardRoutes)
-router.use('/contacts', contactsRoutes)
+router.use('/contacts', authenticateToken, requireAdmin, contactsRoutes)
 
 export default router;
