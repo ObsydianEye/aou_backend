@@ -9,7 +9,7 @@ import artistRoutes from "./artist.routes"
 import dashboardRoutes from "./dashboard.routes"
 import contactsRoutes from "./contacts.routes"
 import eventRoutes from "./events.routes"
-
+import blogsRoute from "./blogs.routes"
 const router = Router();
 
 router.get("/", (req, res) => { res.send("Getting the request") })
@@ -21,5 +21,6 @@ router.use('/artists', authenticateToken, requireAdmin, artistRoutes)
 router.use('/dashboard', dashboardRoutes)
 router.use('/contacts', authenticateToken, requireAdmin, contactsRoutes)
 router.use("/events", eventRoutes)
+router.use("/blogs", blogsRoute)
 
 export default router;

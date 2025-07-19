@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document } from 'mongoose';
 
 export interface IBlog extends Document {
     title: string;
@@ -14,7 +14,7 @@ export interface IBlog extends Document {
     updatedAt?: Date;
 }
 
-const BlogSchema = new Schema<IBlog>(
+const blogSchema = new Schema<IBlog>(
     {
         title: { type: String, required: true },
         excerpt: { type: String, required: true },
@@ -22,13 +22,13 @@ const BlogSchema = new Schema<IBlog>(
         thumbnail: { type: String, required: true },
         content: { type: String, required: true },
         author: { type: String, required: true },
-        readTime: { type: String, default: "5 min read" },
+        readTime: { type: String, default: '5 min read' },
         slug: { type: String, required: true, unique: true },
-        date: { type: String, required: true }, // You might consider using Date type here if appropriate
+        date: { type: String, required: true },
     },
     {
-        timestamps: true, // Automatically adds createdAt and updatedAt
+        timestamps: true, // auto-manages createdAt & updatedAt
     }
 );
 
-export default model<IBlog>("Blog", BlogSchema);
+export const BlogModel = model<IBlog>('Blog', blogSchema);

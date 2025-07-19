@@ -25,7 +25,6 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
             exp: number;
         };
         const username = payload.username;
-        console.log(username)
         const user = await UserModel.findOne({ username, isActive: true });
         if (!user) {
             return res.status(401).json({ detail: 'User not found' });
@@ -39,8 +38,6 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 };
 
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body)
-    console.log(req.user)
     const role = req.user.role;
     if (!['admin', 'super_admin'].includes(role)) {
         return res.status(403).json({ detail: 'Not enough permissions' });

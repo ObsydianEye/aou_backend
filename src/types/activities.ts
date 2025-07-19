@@ -16,3 +16,9 @@ export interface ActivityResponse {
     limit: number;
     totalPages: number;
 }
+
+export interface ActivityCreate {
+    action: string;
+    description: string;
+    performedBy: string;
+}
