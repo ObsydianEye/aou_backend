@@ -1,32 +1,122 @@
-import { Schema, model, Document } from "mongoose";
+// models/event.model.ts
+import mongoose, { Schema, Model } from 'mongoose';
+import { IEventDocument } from '../types/events';
 
-export interface IEvent extends Document {
-    title: string;
-    date: string; // Keep as string to match your Pydantic model
-    location: string;
-    description: string;
-    highlights?: string;
-    images: string[];
-    videoHighlight?: string;
-    type: "upcoming" | "past";
-    createdAt: Date;
-    updatedAt?: Date;
-}
-
-const EventSchema = new Schema<IEvent>(
-    {
-        title: { type: String, required: true },
-        date: { type: String, required: true }, // Could be Date if you prefer
-        location: { type: String, required: true },
-        description: { type: String, required: true },
-        highlights: { type: String },
-        images: { type: [String], default: [] },
-        videoHighlight: { type: String },
-        type: { type: String, enum: ["upcoming", "past"], default: "upcoming" },
+const EventSchema = new Schema<IEventDocument>({
+    title: {
+        type: String,
+        required: [true, 'Event title is required'],
+        trim: true,
+        maxlength: [200, 'Title cannot exceed 200 characters']
     },
-    {
-        timestamps: true, // Adds createdAt and updatedAt fields
+    date: {
+        type: String,
+        required: [true, 'Event date is required'],
+        trim: true
+    },
+    location: {
+        type: String,
+        required: [true, 'Event location is required'],
+        trim: true,
+        maxlength: [300, 'Location cannot exceed 300 characters']
+    },
+    description: {
+        type: String,
+        required: [true, 'Event description is required'],
+        trim: true,
+        maxlength: [2000, 'Description cannot exceed 2000 characters']
+    },
+    highlights: {
+        type: String,
+        trim: true,
+        maxlength: [1000, 'Highlights cannot exceed 1000 characters'],
+        default: null
+    },
+    images: {
+        type: [String],
+        default: [],
+        validate: {
+            validator: function (images: string[]) {
+                return images.length <= 10; // Limit to 10 images
+            },
+            message: 'Cannot have more than 10 images per event'
+        }
+    },
+    videoHighlight: {
+        type: String,
+        trim: true,
+        default: null,
+        validate: {
+            validator: function (url: string) {
+                if (!url) return true;
+                // Basic URL validation
+                const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                return urlPattern.test(url);
+            },
+            message: 'Please provide a valid URL for video highlight'
+        }
+    },
+    type: {
+        type: String,
+        enum: ['upcoming', 'past'],
+        default: 'upcoming',
+        required: true
     }
-);
+}, {
+    timestamps: true, // This automatically adds createdAt and updatedAt
+    versionKey: false, // Removes __v field
+    toJSON: {
+        transform: function (doc, ret) {
+            ret.id = (ret._id as mongoose.Types.ObjectId).toString();
+            return ret;
+        }
+    },
+    toObject: {
+        transform: function (doc, ret) {
+            ret.id = (ret._id as mongoose.Types.ObjectId).toString();
+            return ret;
+        }
+    }
+});
 
-export default model<IEvent>("Event", EventSchema);
+// Indexes for better query performance
+EventSchema.index({ type: 1, date: 1 });
+EventSchema.index({ createdAt: -1 });
+EventSchema.index({ title: 'text', description: 'text', location: 'text' });
+
+// Static methods
+EventSchema.statics.findByType = function (type: 'upcoming' | 'past') {
+    return this.find({ type }).sort({ date: type === 'upcoming' ? 1 : -1 });
+};
+
+EventSchema.statics.findRecent = function (limit: number = 10) {
+    return this.find().sort({ createdAt: -1 }).limit(limit);
+};
+
+// Instance methods
+EventSchema.methods.markAsPast = function () {
+    this.type = 'past';
+    this.updatedAt = new Date();
+    return this.save();
+};
+
+EventSchema.methods.addImage = function (imageUrl: string) {
+    if (this.images.length >= 10) {
+        throw new Error('Cannot add more than 10 images per event');
+    }
+    this.images.push(imageUrl);
+    return this.save();
+};
+
+// Pre-save middleware
+EventSchema.pre('save', function (next) {
+    if (this.isModified() && !this.isNew) {
+        this.updatedAt = new Date();
+    }
+    next();
+});
+
+// Create and export the model
+const EventModel: Model<IEventDocument> = mongoose.model<IEventDocument>('Event', EventSchema);
+
+export { EventModel };

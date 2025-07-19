@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import BlogModel from "../models/blogs_collection";
-import EventModel from "../models/events_collection";
+import { EventModel } from "../models/events_collection";
 import { UserModel } from "../models/user_collection";
 
 // Controller to get dashboard stats

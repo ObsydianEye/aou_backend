@@ -8,7 +8,10 @@ import activityRoutes from "./activity.routes"
 import artistRoutes from "./artist.routes"
 import dashboardRoutes from "./dashboard.routes"
 import contactsRoutes from "./contacts.routes"
+import eventRoutes from "./events.routes"
+
 const router = Router();
+
 router.get("/", (req, res) => { res.send("Getting the request") })
 
 router.use("/auth", authRoute);
@@ -17,5 +20,6 @@ router.use('/activities', authenticateToken, requireAdmin, activityRoutes)
 router.use('/artists', authenticateToken, requireAdmin, artistRoutes)
 router.use('/dashboard', dashboardRoutes)
 router.use('/contacts', authenticateToken, requireAdmin, contactsRoutes)
+router.use("/events", eventRoutes)
 
 export default router;
