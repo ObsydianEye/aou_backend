@@ -53,6 +53,17 @@ export const signupUser = async (req: Request, res: Response, next: NextFunction
             return res.status(400).json({ message: 'All fields are required' });
         }
 
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
+
+        // Password validation (minimum 6 characters)
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
+
         const existingUser = await UserModel.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
             return res.status(409).json({ message: 'Username or email already exists' });
