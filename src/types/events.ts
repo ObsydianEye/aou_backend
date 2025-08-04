@@ -1,7 +1,6 @@
 // types/event.types.ts
 import { Document, Types } from 'mongoose';
 
-// Base interface for Event data
 export interface IEventBase {
     title: string;
     date: string;
@@ -10,7 +9,7 @@ export interface IEventBase {
     highlights?: string;
     images: string[];
     videoHighlight?: string;
-    type: 'upcoming' | 'past';
+    type: 'upcoming' | 'past' | 'drafted';
 }
 
 // Interface for creating events
@@ -51,6 +50,7 @@ export interface IEventResponse {
 
 // Interface for client-side (with string _id)
 export interface IEventClient extends Omit<IEvent, '_id'> {
+    id: string;
     _id: string;
 }
 

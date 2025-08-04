@@ -9,7 +9,7 @@ declare global {
 }
 interface SimpleUser {
     id: string;
-    name: string;
+    fullname: string;
     username: string;
     email: string;
     password: string;

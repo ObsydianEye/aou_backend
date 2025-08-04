@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
 import ArtistModel from "../models/artist_collection";
+import { ArtistUpdate } from "../types/artist";
 
 export const createArtist = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -31,20 +32,29 @@ export const createArtist = async (req: Request, res: Response, next: NextFuncti
 export const getAllArtists = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const type = req.query.type as string | undefined;
+
         const query: any = {};
         if (type) {
             query.type = type;
         }
+
         const artists = await ArtistModel.find(query).sort({ createdAt: -1 }).lean();
         const response = artists.map(artist => ({
             ...artist,
-            id: artist._id.toString()
+            id: artist._id.toString(),
         }));
-        return res.status(200).json(response);
+
+        return res.status(200).json({
+            data: {
+                totalArtists: response.length,
+                artists: response,
+            },
+        });
     } catch (error) {
         next(error);
     }
 };
+
 
 export const getArtist = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -63,35 +73,37 @@ export const getArtist = async (req: Request, res: Response, next: NextFunction)
     }
 };
 
-export const updateArtist = async (req: Request, res: Response, next: NextFunction) => {
+export const updateArtist = async (
+    req: Request<{ artist_id: string }, {}, ArtistUpdate>,
+    res: Response,
+    next: NextFunction
+) => {
     try {
-        const artist_id = req.params.artist_id;
-        const update_data = req.body;
-
+        const { artist_id } = req.params;
+        const updateData = req.body;
         if (!Types.ObjectId.isValid(artist_id)) {
             return res.status(400).json({ detail: "Invalid artist ID" });
         }
 
-        const updatePayload = Object.entries(update_data).reduce((acc, [k, v]) => {
-            if (v !== undefined && v !== null) acc[k] = v;
-            return acc;
-        }, {} as Record<string, any>);
+        const cleanedData = Object.fromEntries(
+            Object.entries(updateData).filter(([_, v]) => v != null)
+        );
 
-        if (Object.keys(updatePayload).length === 0) {
+        if (Object.keys(cleanedData).length === 0) {
             return res.status(400).json({ detail: "No update data provided" });
         }
 
-        await ArtistModel.updateOne(
-            { _id: artist_id },
-            { $set: updatePayload }
-        );
+        const updated = await ArtistModel.findByIdAndUpdate(
+            artist_id,
+            { $set: cleanedData },
+            { new: true }
+        ).lean();
 
-        const updated_artist = await ArtistModel.findById(artist_id).lean();
-        if (!updated_artist) {
+        if (!updated) {
             return res.status(404).json({ detail: "Artist not found" });
         }
-        updated_artist.id = updated_artist._id.toString();
-        return res.status(200).json(updated_artist);
+
+        return res.status(200).json({ ...updated, id: updated._id.toString() });
     } catch (error) {
         next(error);
     }

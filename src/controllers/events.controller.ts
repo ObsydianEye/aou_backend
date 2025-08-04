@@ -72,8 +72,8 @@ export const createEvent = async (req: Request, res: Response) => {
     try {
         const eventData: IEventCreate = req.body;
         const newEvent = new EventModel(eventData);
+        console.log(newEvent);
         const savedEvent = await newEvent.save();
-
         res.status(201).json({
             success: true,
             data: savedEvent.toObject(),
@@ -121,10 +121,8 @@ export const updateEvent = async (req: Request, res: Response) => {
 }
 
 export const deleteEvent = async (req: Request, res: Response) => {
-    console.log("erthgaerg")
     try {
         const { id } = req.params;
-        console.log("hsdfgaewrg")
         const deletedEvent = await EventModel.findByIdAndDelete(id);
 
         if (!deletedEvent) {

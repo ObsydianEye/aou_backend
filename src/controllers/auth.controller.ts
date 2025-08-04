@@ -9,43 +9,38 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).json({ message: 'Username and password are required' });
+            return res.status(400).json({ success: false, message: 'Username and password are required' });
         }
-
+        
         const user = await UserModel.findOne({ username });
-
+        
         if (!user || !(await user.comparePassword(password))) {
-            return res.status(401).json({ message: 'Invalid username or password' });
+            return res.status(401).json({ success: false, message: 'Invalid username or password' });
         }
 
         if (!user.isActive) {
-            return res.status(403).json({ message: 'User account is deactivated' });
+            return res.status(403).json({ success: false, message: 'User account is deactivated' });
         }
-
-        // Optional: update lastLogin
+        
         user.lastLogin = new Date();
         await user.save();
+        console.log(user);
 
         const token = generateToken({
             id: user._id,
             username: user.username,
+            email: user.email,
             role: user.role,
         });
 
-        return res.json({
-            token,
-            user: {
-                id: user._id,
-                username: user.username,
-                email: user.email,
-                role: user.role,
-            },
-        });
+        return res.status(200).json({ success: true, token });
     } catch (err) {
-        next(err);
+        console.error('Login error:', err);
+        next(err); // Let global error middleware handle it
     }
 };
-export const signupUser = async (req: Request, res: Response, next: NextFunction) => {
+
+export const createNewUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { username, email, password, name, role } = req.body;
 
@@ -63,24 +58,15 @@ export const signupUser = async (req: Request, res: Response, next: NextFunction
         const newUser = await UserModel.create({
             username,
             email,
-            name,
             password: hashedPassword,
             role: role || 'editor', // default role
         });
 
-        const token = generateToken({
-            id: newUser._id,
-            username: newUser.username,
-            role: newUser.role,
-        });
-
         return res.status(201).json({
-            token,
             user: {
                 id: newUser._id,
                 username: newUser.username,
                 email: newUser.email,
-                name: newUser.name,
                 role: newUser.role,
             },
         });

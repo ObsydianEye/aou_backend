@@ -30,7 +30,13 @@ const EventSchema = new Schema<IEventDocument>({
         type: String,
         trim: true,
         maxlength: [1000, 'Highlights cannot exceed 1000 characters'],
-        default: null
+        default: null,
+        validate: {
+            validator: function (v: string | null) {
+                return v === null || v.trim() === '' || v.length <= 1000;
+            },
+            message: 'Highlights cannot exceed 1000 characters'
+        }
     },
     images: {
         type: [String],
@@ -46,37 +52,24 @@ const EventSchema = new Schema<IEventDocument>({
         type: String,
         trim: true,
         default: null,
-        validate: {
-            validator: function (url: string) {
-                if (!url) return true;
-                // Basic URL validation
-                const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-                return urlPattern.test(url);
-            },
-            message: 'Please provide a valid URL for video highlight'
-        }
+        // validate: {
+        //     validator: function (url: string) {
+        //         if (!url) return true;
+        //         const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        //         return urlPattern.test(url);
+        //     },
+        //     message: 'Please provide a valid URL for video highlight'
+        // }
     },
     type: {
         type: String,
-        enum: ['upcoming', 'past'],
-        default: 'upcoming',
+        enum: ['upcoming', 'past', 'drafted'],
+        default: 'drafted',
         required: true
-    }
+    },
 }, {
     timestamps: true, // This automatically adds createdAt and updatedAt
     versionKey: false, // Removes __v field
-    toJSON: {
-        transform: function (doc, ret) {
-            ret.id = (ret._id as mongoose.Types.ObjectId).toString();
-            return ret;
-        }
-    },
-    toObject: {
-        transform: function (doc, ret) {
-            ret.id = (ret._id as mongoose.Types.ObjectId).toString();
-            return ret;
-        }
-    }
 });
 
 // Indexes for better query performance

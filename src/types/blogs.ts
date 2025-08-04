@@ -8,6 +8,7 @@ export interface BlogCreate {
     author: string;
     readTime?: string;
     slug: string;
+    published: boolean;
 }
 
 export interface BlogUpdate {
@@ -19,6 +20,7 @@ export interface BlogUpdate {
     author?: string;
     readTime?: string;
     slug?: string;
+    published: boolean;
 }
 
 export interface BlogResponse {
@@ -27,4 +29,5 @@ export interface BlogResponse {
     page: number;
     limit: number;
     totalPages: number;
+    published: boolean;
 }

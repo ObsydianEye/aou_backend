@@ -11,7 +11,6 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(' ')[1];
-
     if (!token) {
         return res.status(401).json({ detail: 'Missing authentication token' });
     }

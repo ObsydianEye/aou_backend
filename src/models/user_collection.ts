@@ -6,9 +6,9 @@ export type UserRole = 'super_admin' | 'admin' | 'editor';
 
 // Define the Mongoose document interface
 export interface IUser extends Document {
+    fullname: string;
     username: string;
     email: string;
-    name: string;
     role: UserRole;
     password: string;
     isActive: boolean;
@@ -26,15 +26,15 @@ export type User = Omit<IUser, 'comparePassword' | 'save' | 'validate' | '$isDel
 
 // Mongoose schema
 const UserSchema = new Schema<IUser>({
+    fullname: { type: String, required: true, trim: true },
     username: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true },
-    name: { type: String, required: true, trim: true },
     role: { type: String, enum: ['super_admin', 'admin', 'editor'], default: 'editor' },
     password: { type: String, required: true, trim: true },
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
-    lastLogin: { type: Date, default: Date.now },
+    lastLogin: { type: Date },
     createdBy: { type: String, default: "Super Admin" },
 });
 

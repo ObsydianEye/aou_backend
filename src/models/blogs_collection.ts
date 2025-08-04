@@ -12,6 +12,7 @@ export interface IBlog extends Document {
     date: string;
     createdAt: Date;
     updatedAt?: Date;
+    published: boolean;
 }
 
 const blogSchema = new Schema<IBlog>(
@@ -25,9 +26,10 @@ const blogSchema = new Schema<IBlog>(
         readTime: { type: String, default: '5 min read' },
         slug: { type: String, required: true, unique: true },
         date: { type: String, required: true },
+        published: { type: Boolean, required: true },
     },
     {
-        timestamps: true, // auto-manages createdAt & updatedAt
+        timestamps: true,
     }
 );
 

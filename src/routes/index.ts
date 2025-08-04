@@ -17,9 +17,9 @@ router.get("/", (req, res) => { res.send("Getting the request") })
 router.use("/auth", authRoute);
 router.use('/users', authenticateToken, requireAdmin, userRoute)
 router.use('/activities', authenticateToken, requireAdmin, activityRoutes)
-router.use('/artists', authenticateToken, requireAdmin, artistRoutes)
+router.use('/artists', artistRoutes)
 router.use('/dashboard', dashboardRoutes)
-router.use('/contacts', authenticateToken, requireAdmin, contactsRoutes)
+router.use('/contacts', contactsRoutes)
 router.use("/events", eventRoutes)
 router.use("/blogs", blogsRoute)
 

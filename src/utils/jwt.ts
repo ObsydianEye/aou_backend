@@ -6,6 +6,7 @@ const JWT_EXPIRES_IN = envConfig.JWT_EXPIRES_IN || "1h";
 interface JwtPayload {
     id: any;
     username: string;
+    email: string;
     role: 'admin' | 'super_admin' | 'editor';
 }
 

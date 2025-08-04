@@ -12,7 +12,7 @@ export const testRoute = async (_req: Request, res: Response) => {
 
 export const getBlogs = async (req: Request, res: Response) => {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(100, parseInt(req.query.limit as string) || 10);
+    const limit = Math.min(100, parseInt(req.query.limit as string));
     const search = req.query.search as string | undefined;
     const category = req.query.category as string | undefined;
 
@@ -66,16 +66,15 @@ export const createBlog = async (req: Request, res: Response) => {
     if (existingBlog) {
         return res.status(400).json({ detail: 'Blog with this slug already exists' });
     }
-
     const blogDoc = {
         ...blog,
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date(),
-        author: currentUser.name,
+        author: currentUser.username,
     };
 
     const result = await blogsCollection.insertOne(blogDoc);
-
+    console.log(result)
     const activity: ActivityCreate = {
         action: 'blog_created',
         description: `Created new blog post: "${blog.title}"`,
