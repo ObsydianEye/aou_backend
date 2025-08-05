@@ -172,21 +172,30 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteUser = (req: Request, res: Response) => {
-  const userId = req.params.id;
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const deletedUser = await UserModel.findByIdAndDelete(userId);
 
-  const index = users.findIndex(u => u.id === userId);
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-  if (index === -1) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(200).json({
+      message: 'User deleted successfully',
+      user: {
+        id: deletedUser._id,
+        fullname: deletedUser.fullname,
+        username: deletedUser.username,
+        email: deletedUser.email,
+        role: deletedUser.role,
+        isActive: deletedUser.isActive,
+      },
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-
-  const [deletedUser] = users.splice(index, 1); // clearer destructuring
-
-  res.status(200).json({
-    message: 'User deleted successfully',
-    user: deletedUser,
-  });
 };
 
 // export const toggleUserStatus = async (req: Request, res: Response) => {
@@ -238,3 +247,55 @@ export const deleteUser = (req: Request, res: Response) => {
 //         return res.status(500).json({ message: 'Internal server error' });
 //     }
 // };
+
+export const createNewUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const requiredFields = ['fullname', 'username', 'email', 'role', 'password', 'createdBy'];
+    const missingFields = requiredFields.filter(field => !req.body?.[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: 'All fields are required',
+        missingFields,
+      });
+    }
+
+    const { fullname, username, email, role = 'editor', password, createdBy } = req.body;
+
+    const creator = await UserModel.findOne({ username: createdBy });
+    if (!creator) {
+      return res.status(400).json({ message: `'createdBy' must be a valid existing username` });
+    }
+
+    const existingUser = await UserModel.findOne({
+      $or: [{ username }, { email }],
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ message: 'Username or email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await UserModel.create({
+      fullname,
+      username,
+      email,
+      password: hashedPassword,
+      role,
+      createdBy,
+    });
+
+    return res.status(201).json({
+      user: {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+        isActive: newUser.isActive,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
