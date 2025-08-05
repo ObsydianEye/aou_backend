@@ -31,11 +31,11 @@ const UserSchema = new Schema<IUser>({
     email: { type: String, required: true, trim: true },
     role: { type: String, enum: ['super_admin', 'admin', 'editor'], default: 'editor' },
     password: { type: String, required: true, trim: true },
-    isActive: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: false },
+    createdBy: { type: String, default: "Super Admin" },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     lastLogin: { type: Date },
-    createdBy: { type: String, default: "Super Admin" },
 });
 
 // Password comparison method

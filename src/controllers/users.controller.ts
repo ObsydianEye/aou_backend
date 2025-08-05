@@ -6,17 +6,16 @@ import { SimpleUser as User } from '../types/express';
 import { UserModel } from "../models/user_collection"
 import { users } from '../models/user.store';
 import { ActivityModel } from '../models/activities_collection';
+import bcrypt from 'bcrypt';
 
 export const createUser = async (req: Request, res: Response) => {
   try {
     const { fullname, email, username, password, role = '' } = req.body;
 
-    // Basic validation
     if (!fullname || !email || !username || !password) {
       return res.status(400).json({ message: 'Fullname, email, username, and password are required.' });
     }
 
-    // Check for existing user
     const existing = await UserModel.findOne({
       $or: [{ email }, { username }]
     });
@@ -24,7 +23,6 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(409).json({ message: 'Email or username already exists.' });
     }
 
-    // Validate role
     const allowedRoles = ['super_admin', 'admin', 'editor'];
     const roleToUse = allowedRoles.includes(role) ? role : 'editor';
 
@@ -38,8 +36,6 @@ export const createUser = async (req: Request, res: Response) => {
     });
 
     const savedUser = await newUser.save();
-    console.log(savedUser);
-
 
     return res.status(201).json({
       message: 'User created successfully',
@@ -59,7 +55,6 @@ export const createUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -125,36 +120,56 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 //     }
 // };
 
-export const updateUser = (req: Request, res: Response) => {
-  const userId = req.params.id;
-  const userIndex = users.findIndex(u => u.id === userId);
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const { fullname, username, email, role, password, isActive } = req.body;
 
-  if (userIndex === -1) {
-    return res.status(404).json({ message: 'User not found.' });
+    // Check if user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Check if username is being updated and already taken by another user
+    if (username && username !== user.username) {
+      const existingUser = await UserModel.findOne({ username });
+      if (existingUser && existingUser.id.toString() !== userId) {
+        return res.status(409).json({ message: 'Username is already taken.' });
+      }
+      user.username = username;
+    }
+
+    // Update only allowed fields if present
+    if (fullname) user.fullname = fullname;
+    if (email) user.email = email;
+    if (role) user.role = role;
+    if (typeof isActive === 'boolean') user.isActive = isActive;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    user.updatedAt = new Date(); // optional: if your schema tracks this
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'User updated successfully.',
+      user: {
+        id: user._id,
+        fullname: user.fullname,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Internal server error.' });
   }
-
-  const { fullname, email, role, isActive } = req.body;
-
-  if (!fullname || !email) {
-    return res.status(400).json({ message: 'Fullname and email are required.' });
-  }
-
-  const updatedUser = {
-    ...users[userIndex],
-    fullname,
-    email,
-    role: role || users[userIndex].role,
-    isActive: typeof isActive === 'boolean' ? isActive : users[userIndex].isActive,
-    updatedAt: new Date().toISOString(),
-    lastLogin: new Date().toISOString()
-  };
-
-  users[userIndex] = updatedUser;
-
-  return res.status(200).json({
-    message: 'User updated successfully.',
-    user: updatedUser,
-  });
 };
 
 export const deleteUser = (req: Request, res: Response) => {
