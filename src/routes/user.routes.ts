@@ -5,7 +5,6 @@ import {
     // getUserById,
     updateUser,
     deleteUser,
-    // toggleUserStatus,
 } from '../controllers/users.controller';
 
 const router = Router();
