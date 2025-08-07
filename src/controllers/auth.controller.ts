@@ -11,9 +11,9 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         if (!username || !password) {
             return res.status(400).json({ success: false, message: 'Username and password are required' });
         }
-        
+
         const user = await UserModel.findOne({ username });
-        
+
         if (!user || !(await user.comparePassword(password))) {
             return res.status(401).json({ success: false, message: 'Invalid username or password' });
         }
@@ -21,7 +21,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         if (!user.isActive) {
             return res.status(403).json({ success: false, message: 'User account is deactivated' });
         }
-        
+
         user.lastLogin = new Date();
         await user.save();
         console.log(user);
@@ -36,19 +36,33 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         return res.status(200).json({ success: true, token });
     } catch (err) {
         console.error('Login error:', err);
-        next(err); // Let global error middleware handle it
+        next(err);
     }
 };
 
 export const createNewUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { username, email, password, name, role } = req.body;
+        const requiredFields = ['fullname', 'username', 'email', 'role', 'password', 'createdBy'];
+        const missingFields = requiredFields.filter(field => !req.body?.[field]);
 
-        if (!username || !email || !password || !name) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: 'All fields are required',
+                missingFields,
+            });
         }
 
-        const existingUser = await UserModel.findOne({ $or: [{ username }, { email }] });
+        const { fullname, username, email, role = 'editor', password, createdBy } = req.body;
+
+        const creator = await UserModel.findOne({ username: createdBy });
+        if (!creator) {
+            return res.status(400).json({ message: `'createdBy' must be a valid existing username` });
+        }
+
+        const existingUser = await UserModel.findOne({
+            $or: [{ username }, { email }],
+        });
+
         if (existingUser) {
             return res.status(409).json({ message: 'Username or email already exists' });
         }
@@ -56,10 +70,12 @@ export const createNewUser = async (req: Request, res: Response, next: NextFunct
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await UserModel.create({
+            fullname,
             username,
             email,
             password: hashedPassword,
-            role: role || 'editor', // default role
+            role,
+            createdBy,
         });
 
         return res.status(201).json({
@@ -68,6 +84,7 @@ export const createNewUser = async (req: Request, res: Response, next: NextFunct
                 username: newUser.username,
                 email: newUser.email,
                 role: newUser.role,
+                isActive: newUser.isActive,
             },
         });
     } catch (err) {

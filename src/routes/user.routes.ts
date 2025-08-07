@@ -1,20 +1,17 @@
 import { Router } from 'express';
 import {
-    createUser,
     getUsers,
+    // createUser,
     // getUserById,
     updateUser,
     deleteUser,
-    // toggleUserStatus,
 } from '../controllers/users.controller';
 
 const router = Router();
 
-router.post('/', createUser);        // Create
-router.get('/', getUsers);           // Read All
-// router.get('/:id', getUserById);     // Read One
-router.put('/:id', updateUser);      // Update
-router.delete('/:id', deleteUser);   // Delete
-// router.put('/:user_id/toggle-status', toggleUserStatus);
-
+router.get('/', getUsers);
+// router.get('/:id', getUserById);
+// router.post('/', createUser)
+router.put('/:id', updateUser);
+router.delete('/:id', deleteUser);
 export default router;
