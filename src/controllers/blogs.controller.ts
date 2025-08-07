@@ -6,10 +6,6 @@ import { BlogResponse, BlogCreate, BlogUpdate } from '../types/blogs';
 import { SimpleUser } from '../types/express';
 import { ActivityCreate } from '../types/activities';
 
-export const testRoute = async (_req: Request, res: Response) => {
-    res.json({ message: 'Test route reached' });
-};
-
 export const getBlogs = async (req: Request, res: Response) => {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, parseInt(req.query.limit as string));

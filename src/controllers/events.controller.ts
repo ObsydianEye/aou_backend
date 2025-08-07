@@ -54,7 +54,6 @@ export const getEventById = async (req: Request, res: Response) => {
                 message: 'Event not found'
             });
         }
-
         res.status(200).json({
             success: true,
             data: event.toObject()
@@ -72,21 +71,47 @@ export const createEvent = async (req: Request, res: Response) => {
     try {
         const eventData: IEventCreate = req.body;
         const newEvent = new EventModel(eventData);
-        console.log(newEvent);
+
         const savedEvent = await newEvent.save();
+
         res.status(201).json({
             success: true,
             data: savedEvent.toObject(),
-            message: 'Event created successfully'
         });
     } catch (error: any) {
-        res.status(400).json({
+        console.error('Create Event Error:', error);
+
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: Object.keys(error.errors).map(key => ({
+                    field: key,
+                    message: error.errors[key].message,
+                })),
+            });
+        }
+
+        if (error.code === 11000) {
+            // Duplicate key error (e.g., unique fields like title or slug)
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(409).json({
+                success: false,
+                message: `Duplicate value for unique field '${field}'`,
+                field,
+                value: error.keyValue[field],
+            });
+        }
+
+        // Fallback for unknown errors
+        return res.status(500).json({
             success: false,
-            message: 'Failed to create event',
-            error: error.message
+            message: 'An unexpected error occurred while creating the event.',
+            error: error.message,
         });
     }
-}
+};
+
 
 export const updateEvent = async (req: Request, res: Response) => {
     try {
